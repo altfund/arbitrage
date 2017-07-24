@@ -28,14 +28,14 @@ class Configuration(RabbitmqCfgMixin):
         self.opts = []
 
         super().__init__()
-        self.refresh_rate = 20
-        self.default_market_update_rate = 20
-        self.bank_fee = 0.007
+        self.refresh_rate = 1
+        self.default_market_update_rate = 1
+        self.bank_fee = 0.00
         self.fiat_update_delay = 3600
         self.market_expiration_time = 120
         self.max_tx_volume = 10
         self.observers = ['Logger', 'Rabbitmq']
-        self.markets = ["KrakenUSD", "CoinBaseUSD"] #list(registry.markets_registry.keys())
+        self.markets = ["KrakenUSD", "KrakenETH", "GDAXUSD"] #list(registry.markets_registry.keys())
         self.opts.extend([
             'default_market_update_rate',
             'market_expiration_time',

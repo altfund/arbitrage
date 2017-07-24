@@ -11,3 +11,4 @@ from arbitrage.markets import krakenusd
 #from arbitrage.markets import okcoincny
 #from arbitrage.markets import paymiumeur
 from arbitrage.markets import gdaxusd
+from arbitrage.markets import krakeneth

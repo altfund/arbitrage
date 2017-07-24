@@ -31,8 +31,8 @@ class MarketBase(object, metaclass=Plugin):
         self.config = config or Configuration()
         self.update_rate = self.config.default_market_update_rate
         self.depth = None
-        self.fc = FiatConverter(config)
-        self.fc.update()
+        #self.fc = FiatConverter(config)
+        #self.fc.update()
 
     def set_config(self, config):
         self.config = config
@@ -48,18 +48,18 @@ class MarketBase(object, metaclass=Plugin):
                 {'price': 0, 'amount': 0}]}
         return self.depth
 
-    def convert_to_usd(self):
-        if self.currency == "USD":
-            return
-        for direction in ("asks", "bids"):
-            for order in self.depth[direction]:
-                order["price"] = self.fc.convert(order["price"], self.currency,
-                                                 "USD")
+    #def convert_to_usd(self):
+    #    if self.currency == "USD":
+    #        return
+    #    for direction in ("asks", "bids"):
+    #        for order in self.depth[direction]:
+    #            order["price"] = self.fc.convert(order["price"], self.currency,
+    #                                             "USD")
 
     def ask_update_depth(self):
         try:
             self.update_depth()
-            self.convert_to_usd()
+            #self.convert_to_usd()
             self.depth_updated = time.time()
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
             LOG.exception("HTTPError, can't update market: %s" % self.name)
