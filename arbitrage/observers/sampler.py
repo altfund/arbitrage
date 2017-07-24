@@ -6,7 +6,7 @@ LOG = logging.getLogger(__name__)
 _format = "profit: %f USD, vol: %f BTC, %s [%s] -> %s [%s], ~%.2f%%"
 
 
-class Logger(ObserverBase):
+class Sampler(ObserverBase):
     def opportunity(self, profit, volume, buyprice, kask, sellprice, kbid,
                     perc, weighted_buyprice, weighted_sellprice):
         """Log opportunity"""
@@ -19,13 +19,12 @@ class Logger(ObserverBase):
                             buy_currency,
                             sell_exchange.upper(),
                             sell_currency,
-                            perc#,
-                            #buyprice,
-                            #kask,
-                            #sellprice,
-                            #kbid
-                            #,
-                            #weighted_buyprice
-                            #,
-                            #weighted_sellprice
-                            ))
+                            perc,
+                            buyprice,
+                            kask,
+                            sellprice,
+                            kbid,
+                            weighted_buyprice,
+                            weighted_sellprice))
+        # this is where we save to csv or db or hdf5
+        

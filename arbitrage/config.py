@@ -16,8 +16,8 @@ class RabbitmqCfgMixin(ConfigBase):
 
         default = 'amqp://guest:guest@localhost:5672/'
         self.amqp_url = os.getenv('CLOUDAMQP_URL', default)
-        self.report_queue = 'arbitrage_watcher'
-        self.queue_args = None
+        self.report_queue = "orders.queue"
+        self.queue_args = {"x-dead-letter-exchange": "orders.dead-letter.queue"} #None
         self.opts.extend(['report_queue', 'amqp_url', 'queue_args'])
 
 
@@ -34,8 +34,8 @@ class Configuration(RabbitmqCfgMixin):
         self.fiat_update_delay = 3600
         self.market_expiration_time = 120
         self.max_tx_volume = 10
-        self.observers = ['Logger']
-        self.markets = list(registry.markets_registry.keys())
+        self.observers = ['Logger', 'Rabbitmq']
+        self.markets = ["KrakenUSD", "CoinBaseUSD"] #list(registry.markets_registry.keys())
         self.opts.extend([
             'default_market_update_rate',
             'market_expiration_time',
