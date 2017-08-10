@@ -5,15 +5,18 @@ import json
 from arbitrage.markets.market import MarketBase
 
 
-class GDAXBase(MarketBase):
+class PoloniexBase(MarketBase):
     def __init__(self, currency, code, config=None):
         super().__init__(currency, config)
         self.code = code
         self.update_rate = 30
 
     def update_depth(self):
-        url = 'https://api.gdax.com/products/%s/book?level=2' % self.code
-        req = urllib.request.Request(url, headers={
+        #url = 'https://api.kraken.com/0/public/Depth'
+        url = 'https://poloniex.com/public?command=returnOrderBook&currencyPair='+self.code
+        #&currencyPair=BTC_NXT&depth=10
+        req = urllib.request.Request(url,
+                                     headers={
             "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "*/*",
             "User-Agent": "curl/7.24.0 (x86_64-apple-darwin12.0)"})

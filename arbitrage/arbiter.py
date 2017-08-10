@@ -23,6 +23,8 @@ class Arbiter(object):
         self.thread_pool = ThreadPoolExecutor(max_workers=workers)
         self.market_names = []
         self.observer_names = []
+        
+        LOG.info([x.name for x in self.markets])
 
     def get_profit_for(self, mi, mj, kask, kbid):
         if self.depths[kask]["asks"][mi]["price"] \
@@ -121,7 +123,12 @@ class Arbiter(object):
         weighted_sellprice = self.arbitrage_depth_opportunity(kask, kbid)
         if volume == 0 or buyprice == 0:
             return
-        perc2 = (1 - (volume - (profit / buyprice)) / volume) * 100
+        txn_cost = float(self.config.creds[kask[:-3].upper()]['taker_fee']) + float(self.config.creds[kbid[:-3].upper()]['taker_fee'])
+        LOG.debug(txn_cost)
+        perc2 = ((1 - (volume - (profit / buyprice)) / volume) - 0) * 100
+        LOG.debug(perc2)
+        if perc2 < 0:
+            return
         for observer in self.observers:
             observer.opportunity(
                 profit, volume, buyprice, kask, sellprice, kbid,
@@ -151,6 +158,8 @@ class Arbiter(object):
 
         for kmarket1 in self.depths:
             for kmarket2 in self.depths:
+                if kmarket1[-3:] != kmarket2[-3:]: # same exchange
+                    continue
                 if kmarket1 == kmarket2:  # same market
                     continue
                 market1 = self.depths[kmarket1]

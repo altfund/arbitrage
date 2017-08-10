@@ -1,0 +1,17 @@
+[GDAX]
+key=XXXXX
+secret=XXXXX
+passphrase=XXXXX
+taker_fee=0.0025
+
+[KRAKEN]
+key=XXXXX
+secret=XXXXX
+passphrase=None
+taker_fee=0.0026
+
+[POLONIEX]
+key=XXXXX
+secret=XXXXX
+passphrase=None
+taker_fee=0.0025

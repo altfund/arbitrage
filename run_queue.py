@@ -2,12 +2,12 @@ import logging
 import time
 
 from arbitrage.arbiter import Arbiter
-from arbitrage.config import Configuration, SampleConfig
+from arbitrage.config import Configuration
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(format=log_format, level=logging.INFO) #DEBUG
+logging.basicConfig(format=log_format, level=logging.INFO)
 
-config = SampleConfig() #Configuration()
+config = Configuration()
 arbiter = Arbiter(config)
 
 def update(arbiter):

@@ -40,3 +40,7 @@ nosetests.xml
 # Project
 old/
 tmp/
+
+# Config
+*.ini
+config

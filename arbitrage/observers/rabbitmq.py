@@ -6,6 +6,7 @@ import time
 
 import tenacity
 import pika
+import requests
 
 from pika.exceptions import AMQPError, AMQPChannelError
 from tenacity import stop_after_delay, wait_exponential
@@ -98,15 +99,45 @@ class Rabbitmq(ObserverBase):
         # split market name and currency:  KrakenUSD -> (Kraken, USD)
         buy_exchange, buy_currency = kask[:-3], kask[-3:]
         sell_exchange, sell_currency = kbid[:-3], kbid[-3:]
+        
+        #url = "http://localhost:8000/api/arbitrage_opportunity/"
+        
+        if buy_currency == "DSH":
+            buy_currency = "DASH"
+        if sell_currency == "DSH":
+            sell_currency = "DASH"
+
+        data = {
+            "api_key":self.client.config.api_key,
+            "arb_volume": volume,
+            "arb_currency": "BTC",
+            "buy_currency": buy_currency,
+            "buy_exchange": buy_exchange.upper(),
+            "sell_currency": sell_currency,
+            "sell_exchange": sell_exchange.upper(),
+        }
+        
+        #request = requests.post(self.client.config.api_endpoint, data=data)
+        #request.content
+        #for account in requests.content:
+        
+        
+        creds = self.client.config.creds
 
         message = {"order_type": "inter_exchange_arb",
                    "order_specs": {
-                       "arb_volume": 0, #volume,
+                       "arb_volume": volume,
                        "arb_currency": "BTC",
                        "buy_currency": buy_currency,
                        "sell_currency": sell_currency,
                        "buy_exchange": buy_exchange.upper(),
-                       "sell_exchange": sell_exchange.upper()
+                       "sell_exchange": sell_exchange.upper(),
+                       "sell_exchange_key": creds[sell_exchange.upper()]['key'],
+                       "sell_exchange_secret": creds[sell_exchange.upper()]['secret'],
+                       "sell_exchange_passphrase": creds[sell_exchange.upper()]['passphrase'],
+                       "buy_exchange_key": creds[buy_exchange.upper()]['key'],
+                       "buy_exchange_secret": creds[buy_exchange.upper()]['secret'],
+                       "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase']
                    }}
 
         self.client.push(message)
