@@ -18,16 +18,17 @@ class RabbitmqCfgMixin(ConfigBase):
         config = configparser.ConfigParser()
         config.read('config')
 
-        default_queue = 'amqp://gzdcfviv:inIyNK-xchZlw9b6u6z1wLEbhsFysZ8F@penguin.rmq.cloudamqp.com/gzdcfviv' #'amqp://guest:guest@localhost:5672/'
+        default_queue = config['settings']['queue_url']
         self.amqp_url = os.getenv('CLOUDAMQP_URL', default_queue)
         self.report_queue = "orders.queue"
         self.queue_args = {"x-dead-letter-exchange": "orders.dead-letter.queue"} #None
         self.opts.extend(['report_queue', 'amqp_url', 'queue_args'])
         default_key = 1
-        default_endpoint = "https://investor.altfund.org/api/arbitrage_opportunity/" # "http://localhost:8000/api/arbitrage_opportunity/"
+        default_endpoint = "http://localhost:8000/api/arbitrage_opportunity/"
         self.api_endpoint = os.getenv('API_ENDPOINT', default_endpoint)
         self.api_key = os.getenv('API_KEY', default_key)
         self.creds = {s:dict(config.items(s)) for s in config.sections()}
+        self.max_tx_volume = float(config['settings']['max_tx_volume'])
 
 
 class Configuration(RabbitmqCfgMixin):
@@ -41,7 +42,7 @@ class Configuration(RabbitmqCfgMixin):
         self.default_market_update_rate = 1
         self.transaction_cost = 0 #0.003
         self.market_expiration_time = 120
-        self.max_tx_volume = 10
+        #self.max_tx_volume = 0.005
         self.observers = ['Logger', 'Rabbitmq']
         self.markets = list(registry.markets_registry.keys()) #["GDAXUSD", "KrakenUSD", "GDAXLTC","KrakenLTC", "KrakenETH", "GDAXETH"]
         self.opts.extend([

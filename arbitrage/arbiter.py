@@ -125,7 +125,7 @@ class Arbiter(object):
             return
         txn_cost = float(self.config.creds[kask[:-3].upper()]['taker_fee']) + float(self.config.creds[kbid[:-3].upper()]['taker_fee'])
         LOG.debug(txn_cost)
-        perc2 = ((1 - (volume - (profit / buyprice)) / volume) - 0) * 100
+        perc2 = ((1 - (volume - (profit / buyprice)) / volume) - txn_cost) * 100
         LOG.debug(perc2)
         if perc2 < 0:
             return
