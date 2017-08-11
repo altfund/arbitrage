@@ -18,4 +18,4 @@ taker_fee=0.0025
 
 [settings]
 queue_url=amqp://guest:guest@localhost:5672/
-max_tx_volume=0.0005
+max_tx_volume=0.01
