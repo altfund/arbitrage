@@ -131,13 +131,7 @@ class Rabbitmq(ObserverBase):
                        "buy_currency": buy_currency,
                        "sell_currency": sell_currency,
                        "buy_exchange": buy_exchange.upper(),
-                       "sell_exchange": sell_exchange.upper(),
-                       "sell_exchange_key": creds[sell_exchange.upper()]['key'],
-                       "sell_exchange_secret": creds[sell_exchange.upper()]['secret'],
-                       "sell_exchange_passphrase": creds[sell_exchange.upper()]['passphrase'],
-                       "buy_exchange_key": creds[buy_exchange.upper()]['key'],
-                       "buy_exchange_secret": creds[buy_exchange.upper()]['secret'],
-                       "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase']
+                       "sell_exchange": sell_exchange.upper()
                    }}
 
         self.client.push(message)
