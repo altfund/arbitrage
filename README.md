@@ -1,27 +1,20 @@
 ## How to install
 
 ```
-cd ./bitcoin-arbitrage/
+cd ./arbitrage/
 pip install .
 ```
-
+- Edit `config` with your credentials and other relevant parameters
 
 ## Supported markets:
 
 ```
-- CampBXUSD
-- CoinBaseUSD
-- OKCoinCNY
-- BtceUSD
-- BTCCCNY
-- BtceEUR
-- BitstampUSD
-- GeminiUSD
-- BitfinexUSD
-- KrakenUSD
-- PaymiumEUR
-- KrakenEUR
+GDAX: ETH, LTC, EUR, USD
+Kraken: ETH, EUR, LTC, USD, XLM, REP, EOS, GNO, XRP, ICN, ZEC, ETC ,XDG, DSH, MLN, XMR
+Poloniex: ETH, LTC, REP, GNO, XRP, ZEC, ETC, DSH, XMR
 ```
+* All currencies compared on BTC basis
+** DSH = DASH shortened to 3 character code for conformity
 
 ## Supported observers
 
@@ -97,17 +90,3 @@ Name | Type | Description | Notes
 **observers** | **list[str]** | List of opportunity observers names | [optional] 
 **refresh_rate** | **int** | Update rate in seconds of the arbiter&#39;s main loop | [optional] [default to 20]
 **report_queue** | **str** | The name of the response queue | [optional] [default to 'arbitrage_watcher']
-
-
-## Adding new markets and observers
-
-To plug-in the new implementation of the market or observer you need to inherit their base classes:
-
- - `arbitrage.markets.market.MarketBase`
- - `arbitrage.observers.observer.ObserverBase`
-
-and then add an import of the python module with the class
-implementation to one of the markets or observer packages:
-
- - `arbitrage.markets.__init__.py`
- - `arbitrage.observers.__init__.py`
