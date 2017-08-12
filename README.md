@@ -3,8 +3,9 @@
 ```
 cd ./arbitrage/
 pip install .
+# Edit `config` with your credentials and other relevant parameters
+python run_queue.py
 ```
-- Edit `config` with your credentials and other relevant parameters
 
 ## Supported markets:
 
