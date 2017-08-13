@@ -102,7 +102,7 @@ class Rabbitmq(ObserverBase):
         sell_exchange, sell_currency = kbid[:-3], kbid[-3:]
         
         #url = "http://localhost:8000/api/arbitrage_opportunity/"
-        if sell_currency != buy_currency
+        if sell_currency != buy_currency:
             LOG.info("Sell currency not equal to buy currency")
             return(0)
         
@@ -130,26 +130,25 @@ class Rabbitmq(ObserverBase):
         
         creds = self.client.config.creds
         
-        order = {
-            "params":{
-                "order_type": "inter_exchange_arb" #_id":
-                "base_currency": 1#base_currency #_id":
-                "quote_currency": 1#quote_currency #_id":
-                "direction": "BID"
-                "price": weighted_buyprice
-                "volume": volume
-            },
-            "user":{
-                "id": 1
-                "investment_strategy":1
-            }
-            "exchange":{
-                "key": 1
-                "secret": 1
-                "passphrase": 1
-            }
-            
-        }
+        #order = {
+        #    "params":{
+        #        "order_type": "inter_exchange_arb" #_id":
+        #        "base_currency": 1#base_currency #_id":
+        #        "quote_currency": 1#quote_currency #_id":
+        #        "direction": "BID"
+        #        "price": weighted_buyprice
+        #        "volume": volume
+        #    },
+        #    "user":{
+        #        "id": 1
+        #        "investment_strategy":1
+        #    }
+        #    "exchange":{
+        #        "key": 1
+        #        "secret": 1
+        #        "passphrase": 1
+        #    }
+        #}
 
         message = {"order_type": "inter_exchange_arb",
                    "order_specs": {
@@ -171,7 +170,6 @@ class Rabbitmq(ObserverBase):
                        "buy_exchange_secret": creds[buy_exchange.upper()]['secret'],
                        "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase']
                    },
-                    ""
-        }
+                   }
 
         self.client.push(message)
