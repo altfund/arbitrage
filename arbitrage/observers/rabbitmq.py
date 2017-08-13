@@ -83,6 +83,7 @@ class AMQPClient(object):
                                        properties=properties)
         except Exception as e:
             LOG.error('Failed to push a message %s. Skipped.' % data)
+            
 
 
 class Rabbitmq(ObserverBase):
@@ -101,43 +102,76 @@ class Rabbitmq(ObserverBase):
         sell_exchange, sell_currency = kbid[:-3], kbid[-3:]
         
         #url = "http://localhost:8000/api/arbitrage_opportunity/"
+        if sell_currency != buy_currency
+            LOG.info("Sell currency not equal to buy currency")
+            return(0)
         
-        if buy_currency == "DSH":
-            buy_currency = "DASH"
-        if sell_currency == "DSH":
-            sell_currency = "DASH"
-
+        watch_currency = sell_currency
+        
+        
+        if watch_currency == "DSH":
+            watch_currency = "DASH"
+        
         data = {
             "api_key":self.client.config.api_key,
             "arb_volume": volume,
-            "arb_currency": "BTC",
             "buy_currency": buy_currency,
             "buy_exchange": buy_exchange.upper(),
             "sell_currency": sell_currency,
             "sell_exchange": sell_exchange.upper(),
         }
         
+
+
         #request = requests.post(self.client.config.api_endpoint, data=data)
         #request.content
         #for account in requests.content:
         
         
         creds = self.client.config.creds
+        
+        order = {
+            "params":{
+                "order_type": "inter_exchange_arb" #_id":
+                "base_currency": 1#base_currency #_id":
+                "quote_currency": 1#quote_currency #_id":
+                "direction": "BID"
+                "price": weighted_buyprice
+                "volume": volume
+            },
+            "user":{
+                "id": 1
+                "investment_strategy":1
+            }
+            "exchange":{
+                "key": 1
+                "secret": 1
+                "passphrase": 1
+            }
+            
+        }
 
         message = {"order_type": "inter_exchange_arb",
                    "order_specs": {
                        "arb_volume": volume,
                        "arb_currency": "BTC",
-                       "buy_currency": buy_currency,
-                       "sell_currency": sell_currency,
+                       "buy_currency": watch_currency,
+                       "buy_price": weighted_buyprice,
                        "buy_exchange": buy_exchange.upper(),
-                       "sell_exchange": sell_exchange.upper(),
+                       "sell_currency": watch_currency,
+                       "sell_price": weighted_sellprice,
+                       "sell_exchange": sell_exchange.upper()},
+                    "user_specs": {
+                        "user_id":1,
+                        "investment_strategy_id": 1,
                        "sell_exchange_key": creds[sell_exchange.upper()]['key'],
                        "sell_exchange_secret": creds[sell_exchange.upper()]['secret'],
                        "sell_exchange_passphrase": creds[sell_exchange.upper()]['passphrase'],
                        "buy_exchange_key": creds[buy_exchange.upper()]['key'],
                        "buy_exchange_secret": creds[buy_exchange.upper()]['secret'],
                        "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase']
-                   }}
+                   },
+                    ""
+        }
 
         self.client.push(message)
