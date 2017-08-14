@@ -26,5 +26,5 @@ class ObserverBase(object, metaclass=Plugin):
 
     @abc.abstractmethod
     def opportunity(self, profit, volume, buyprice, kask, sellprice,
-                    kbid, perc, weighted_buyprice, weighted_sellprice):
+                    kbid, perc, weighted_buyprice, weighted_sellprice, max_buy_price, min_sell_price):
         pass

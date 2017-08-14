@@ -30,6 +30,6 @@ class KrakenBase(MarketBase):
         return r
 
     def format_depth(self, depth):
-        bids = self.sort_and_format(depth['result'][self.code]['bids'], False)
-        asks = self.sort_and_format(depth['result'][self.code]['asks'], True)
+        bids = self.sort_and_format(depth['result'][self.code]['bids'], True)
+        asks = self.sort_and_format(depth['result'][self.code]['asks'], False)
         return {'asks': asks, 'bids': bids}

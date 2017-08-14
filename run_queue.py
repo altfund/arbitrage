@@ -5,7 +5,7 @@ from arbitrage.arbiter import Arbiter
 from arbitrage.config import Configuration
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(format=log_format, level=logging.INFO)
+logging.basicConfig(format=log_format, level=logging.DEBUG)
 
 config = Configuration()
 arbiter = Arbiter(config)

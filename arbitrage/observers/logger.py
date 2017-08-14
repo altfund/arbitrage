@@ -8,7 +8,7 @@ _format = "profit: %.8f %s, vol: %f BTC, buy on %s [%s] @ %.8f -> sell on %s [%s
 
 class Logger(ObserverBase):
     def opportunity(self, profit, volume, buyprice, kask, sellprice, kbid,
-                    perc, weighted_buyprice, weighted_sellprice):
+                    perc, weighted_buyprice, weighted_sellprice, max_buy_price, min_sell_price):
         """Log opportunity"""
 
         buy_exchange, buy_currency = kask[:-3], kask[-3:]
@@ -18,10 +18,10 @@ class Logger(ObserverBase):
                             volume,
                             buy_exchange.upper(),
                             buy_currency,
-                            buyprice,
+                            max_buy_price,
                             sell_exchange.upper(),
                             sell_currency,
-                            sellprice,
+                            min_sell_price,
                             perc#,
                             #kask,
                             #kbid,

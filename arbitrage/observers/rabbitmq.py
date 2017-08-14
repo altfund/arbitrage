@@ -94,7 +94,7 @@ class Rabbitmq(ObserverBase):
         self.client = AMQPClient(config)
 
     def opportunity(self, profit, volume, buyprice, kask, sellprice, kbid,
-                    perc, weighted_buyprice, weighted_sellprice):
+                    perc, weighted_buyprice, weighted_sellprice, max_buy_price, min_sell_price):
         """Sends opportunity to a message queue"""
 
         # split market name and currency:  KrakenUSD -> (Kraken, USD)
@@ -155,10 +155,10 @@ class Rabbitmq(ObserverBase):
                        "arb_volume": volume,
                        "arb_currency": "BTC",
                        "buy_currency": watch_currency,
-                       "buy_price": weighted_buyprice,
+                       "buy_price": max_buy_price,
                        "buy_exchange": buy_exchange.upper(),
                        "sell_currency": watch_currency,
-                       "sell_price": weighted_sellprice,
+                       "sell_price": min_sell_price,
                        "sell_exchange": sell_exchange.upper()},
                     "user_specs": {
                         "user_id":1,
