@@ -96,7 +96,7 @@ class Rabbitmq(ObserverBase):
     def opportunity(self, profit, volume, buyprice, kask, sellprice, kbid,
                     perc, weighted_buyprice, weighted_sellprice, max_buy_price, min_sell_price):
         """Sends opportunity to a message queue"""
-
+        LOG.debug("sending message to queue")
         # split market name and currency:  KrakenUSD -> (Kraken, USD)
         buy_exchange, buy_currency = kask[:-3], kask[-3:]
         sell_exchange, sell_currency = kbid[:-3], kbid[-3:]

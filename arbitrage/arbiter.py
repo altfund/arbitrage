@@ -29,7 +29,7 @@ class Arbiter(object):
     def get_profit_for(self, mi, mj, kask, kbid):
         if self.depths[kask]["asks"][mi]["price"] \
                 >= self.depths[kbid]["bids"][mj]["price"]:
-            return 0, 0, 0, 0
+            return 0, 0, 0, 0, 0, 0
 
         max_amount_buy = 0
         for i in range(mi + 1):
@@ -57,9 +57,11 @@ class Arbiter(object):
                     buy_total - amount) + price * amount) / buy_total
         
         max_buy_price = price
+        LOG.debug(price)
         
         sell_total = 0
         w_sellprice = 0
+        
         for j in range(mj + 1):
             price = self.depths[kbid]["bids"][j]["price"]
             amount = min(max_amount, sell_total + self.depths[
@@ -73,6 +75,7 @@ class Arbiter(object):
                 w_sellprice = (w_sellprice * (
                     sell_total - amount) + price * amount) / sell_total
         min_sell_price = price
+        #LOG.debug("min_sell_price "+str(min_sell_price))
 
         profit = sell_total * w_sellprice - buy_total * w_buyprice
         return profit, sell_total, w_buyprice, w_sellprice, max_buy_price, min_sell_price
@@ -104,6 +107,7 @@ class Arbiter(object):
         best_profit = 0
         best_i, best_j = (0, 0)
         best_w_buyprice, best_w_sellprice = (0, 0)
+        best_max_buy_price, best_min_sell_price = (0,0)
         best_volume = 0
         for i in range(maxi + 1):
             for j in range(maxj + 1):
@@ -126,7 +130,7 @@ class Arbiter(object):
     def arbitrage_opportunity(self, kask, ask, kbid, bid):
         perc = (bid["price"] - ask["price"]) / bid["price"] * 100
         profit, volume, buyprice, sellprice, weighted_buyprice, \
-        weighted_sellprice, max_buy_price, min_sell_price = self.arbitrage_depth_opportunity(kask, kbid)
+        weighted_sellprice, max_buy_price, min_sell_price = self.arbitrage_depth_opportunity(kask, kbid) 
         if volume == 0 or buyprice == 0:
             return
         txn_cost = float(self.config.creds[kask[:-3].upper()]['taker_fee']) + float(self.config.creds[kbid[:-3].upper()]['taker_fee'])
@@ -135,7 +139,9 @@ class Arbiter(object):
         LOG.debug(perc2)
         if perc2 < 0:
             return
+        LOG.debug("found an opportunity")
         for observer in self.observers:
+            LOG.debug("sending an opportunity")
             observer.opportunity(
                 profit, volume, buyprice, kask, sellprice, kbid,
                 perc2, weighted_buyprice, weighted_sellprice,
