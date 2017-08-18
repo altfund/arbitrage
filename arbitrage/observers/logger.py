@@ -3,7 +3,7 @@ from arbitrage.observers.observer import ObserverBase
 
 LOG = logging.getLogger(__name__)
 
-_format = "profit: %.8f %s, vol: %f BTC, buy on %s [%s] @ %.8f / %.8f / %.8f -> sell on %s [%s] @ %f / %f / %f, ~%.2f%%"
+_format = "profit: %.8f %s, vol: %f, buy on %s [%s] @ %.8f / %.8f / %.8f -> sell on %s [%s] @ %f / %f / %f, ~%.2f%%"
 
 
 class Logger(ObserverBase):

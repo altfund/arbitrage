@@ -149,15 +149,36 @@ class Rabbitmq(ObserverBase):
         #        "passphrase": 1
         #    }
         #}
+        
+        base_currency = "BTC"
+        max_tx_volume = 0.001
+        
+        
+        buy_base_currency = watch_currency
+        buy_quote_currency = "BTC"
+        sell_base_currency = watch_currency
+        sell_quote_currency = "BTC"
+        
+        if watch_currency == "USD" or watch_currency == "EUR":
+            buy_base_currency = "BTC"
+            sell_base_currency = "BTC"
+            buy_quote_currency = watch_currency
+            sell_quote_currency = watch_currency
+            
+        #if buy_base_currency == base_currency:
+            # implement volume limit on 
+        
 
         message = {"order_type": "inter_exchange_arb",
                    "order_specs": {
-                       "arb_volume": volume,
-                       "arb_currency": "BTC",
-                       "buy_currency": watch_currency,
+                       "buy_base_currency": buy_base_currency,
+                       "buy_quote_currency": buy_quote_currency,
+                       "buy_volume": volume,
                        "buy_price": max_buy_price,
                        "buy_exchange": buy_exchange.upper(),
-                       "sell_currency": watch_currency,
+                       "sell_base_currency": sell_base_currency,
+                       "sell_quote_currency": sell_quote_currency,
+                       "sell_volume": volume,
                        "sell_price": min_sell_price,
                        "sell_exchange": sell_exchange.upper()},
                     "user_specs": {
