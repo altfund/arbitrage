@@ -150,8 +150,8 @@ class Rabbitmq(ObserverBase):
         #    }
         #}
         
-        base_currency = "BTC"
-        max_tx_volume = 0.001
+        investor_currency = "BTC"
+        max_tx_volume = 0.005
         
         
         buy_base_currency = watch_currency
@@ -164,21 +164,45 @@ class Rabbitmq(ObserverBase):
             sell_base_currency = "BTC"
             buy_quote_currency = watch_currency
             sell_quote_currency = watch_currency
-            
-        #if buy_base_currency == base_currency:
-            # implement volume limit on 
         
+        if buy_base_currency == investor_currency:
+            buy_volume = min([volume, max_tx_volume])
+            e_profit = (weighted_sellprice - weighted_buyprice) * buy_volume
+            limit_profit = (min_sell_price - max_buy_price) * buy_volume
+            v_a_r = buy_volume
+        elif buy_quote_currency == investor_currency:
+            buy_volume = min([volume, max_tx_volume/max_buy_price])
+            e_profit = ((weighted_sellprice - weighted_buyprice) * buy_volume)/weighted_buyprice
+            limit_profit = ((min_sell_price - max_buy_price) * buy_volume)/max_buy_price
+            v_a_r = buy_volume*max_buy_price
+        else:
+            LOG.info("investor_currency not represented in arbitrage_opportunity")
+            return(0)
+        
+        sell_volume = buy_volume
+        
+        e_roi = weighted_sellprice/weighted_buyprice-1.0
+        limit_roi = min_sell_price/max_buy_price-1.0
+        
+        "Sammy ate {0:.3f} percent of a pizza!".format(75.765367)
+        
+        
+        LOG.info("Expected Profit (Limit Profit): "+str(e_profit)+" ("+str(limit_profit)+") "+investor_currency)
+        LOG.info("Expected ROI (Limit ROI): "+"{0:.2f}".format(e_roi*100)+" ("+"{0:.2f}".format(limit_roi*100)+") %")
+        LOG.info("Value at Risk: "+str(v_a_r)+" "+investor_currency)
+        LOG.info("BUY (BID) "+str(buy_volume)+" "+buy_base_currency+" @ "+str(max_buy_price)+" "+buy_quote_currency+"/"+buy_base_currency+" on "+buy_exchange.upper())
+        LOG.info("SELL (ASK) "+str(sell_volume)+" "+sell_base_currency+" @ "+str(min_sell_price)+" "+sell_quote_currency+"/"+sell_base_currency+" on "+sell_exchange.upper())
 
         message = {"order_type": "inter_exchange_arb",
                    "order_specs": {
                        "buy_base_currency": buy_base_currency,
                        "buy_quote_currency": buy_quote_currency,
-                       "buy_volume": volume,
+                       "buy_volume": buy_volume,
                        "buy_price": max_buy_price,
                        "buy_exchange": buy_exchange.upper(),
                        "sell_base_currency": sell_base_currency,
                        "sell_quote_currency": sell_quote_currency,
-                       "sell_volume": volume,
+                       "sell_volume": sell_volume,
                        "sell_price": min_sell_price,
                        "sell_exchange": sell_exchange.upper()},
                     "user_specs": {
@@ -190,7 +214,6 @@ class Rabbitmq(ObserverBase):
                        "buy_exchange_key": creds[buy_exchange.upper()]['key'],
                        "buy_exchange_secret": creds[buy_exchange.upper()]['secret'],
                        "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase']
-                   },
-                   }
+                   },}
 
         self.client.push(message)
