@@ -11,6 +11,7 @@ import requests
 from pika.exceptions import AMQPError, AMQPChannelError
 from tenacity import stop_after_delay, wait_exponential
 from arbitrage.observers.observer import ObserverBase
+from Crypto.Cipher import AES
 
 LOG = logging.getLogger(__name__)
 
@@ -83,7 +84,7 @@ class AMQPClient(object):
                                        properties=properties)
         except Exception as e:
             LOG.error('Failed to push a message %s. Skipped.' % data)
-            
+
 
 
 class Rabbitmq(ObserverBase):
@@ -100,18 +101,18 @@ class Rabbitmq(ObserverBase):
         # split market name and currency:  KrakenUSD -> (Kraken, USD)
         buy_exchange, buy_currency = kask[:-3], kask[-3:]
         sell_exchange, sell_currency = kbid[:-3], kbid[-3:]
-        
+
         #url = "http://localhost:8000/api/arbitrage_opportunity/"
         if sell_currency != buy_currency:
             LOG.info("Sell currency not equal to buy currency")
             return(0)
-        
+
         watch_currency = sell_currency
-        
-        
+
+
         if watch_currency == "DSH":
             watch_currency = "DASH"
-        
+
         data = {
             "api_key":self.client.config.api_key,
             "arb_volume": volume,
@@ -120,16 +121,16 @@ class Rabbitmq(ObserverBase):
             "sell_currency": sell_currency,
             "sell_exchange": sell_exchange.upper(),
         }
-        
+
 
 
         #request = requests.post(self.client.config.api_endpoint, data=data)
         #request.content
         #for account in requests.content:
-        
-        
+
+
         creds = self.client.config.creds
-        
+
         #order = {
         #    "params":{
         #        "order_type": "inter_exchange_arb" #_id":
@@ -149,22 +150,22 @@ class Rabbitmq(ObserverBase):
         #        "passphrase": 1
         #    }
         #}
-        
+
         investor_currency = "BTC"
         max_tx_volume = 0.005
-        
-        
+
+
         buy_base_currency = watch_currency
         buy_quote_currency = "BTC"
         sell_base_currency = watch_currency
         sell_quote_currency = "BTC"
-        
+
         if watch_currency == "USD" or watch_currency == "EUR":
             buy_base_currency = "BTC"
             sell_base_currency = "BTC"
             buy_quote_currency = watch_currency
             sell_quote_currency = watch_currency
-        
+
         if buy_base_currency == investor_currency:
             buy_volume = min([volume, max_tx_volume])
             e_profit = (weighted_sellprice - weighted_buyprice) * buy_volume
@@ -178,20 +179,31 @@ class Rabbitmq(ObserverBase):
         else:
             LOG.info("investor_currency not represented in arbitrage_opportunity")
             return(0)
-        
+
         sell_volume = buy_volume
-        
+
         e_roi = weighted_sellprice/weighted_buyprice-1.0
         limit_roi = min_sell_price/max_buy_price-1.0
-        
+
         "Sammy ate {0:.3f} percent of a pizza!".format(75.765367)
-        
-        
+
+
         LOG.info("Expected Profit (Limit Profit): "+str(e_profit)+" ("+str(limit_profit)+") "+investor_currency)
         LOG.info("Expected ROI (Limit ROI): "+"{0:.2f}".format(e_roi*100)+" ("+"{0:.2f}".format(limit_roi*100)+") %")
         LOG.info("Value at Risk: "+str(v_a_r)+" "+investor_currency)
         LOG.info("BUY (BID) "+str(buy_volume)+" "+buy_base_currency+" @ "+str(max_buy_price)+" "+buy_quote_currency+"/"+buy_base_currency+" on "+buy_exchange.upper())
         LOG.info("SELL (ASK) "+str(sell_volume)+" "+sell_base_currency+" @ "+str(min_sell_price)+" "+sell_quote_currency+"/"+sell_base_currency+" on "+sell_exchange.upper())
+
+        #if buy_base_currency == base_currency:
+            # implement volume limit on
+
+        init_vector = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(32))
+        LOG.info(init_vector)
+        #key = config['settings']['AES_KEY']
+        encryption_suite = AES.new( config['settings']['AES_KEY'],
+                                    AES.MODE_CFB,
+                                    init_vector,
+                                    segment_size=256)
 
         message = {"order_type": "inter_exchange_arb",
                    "order_specs": {
@@ -213,7 +225,14 @@ class Rabbitmq(ObserverBase):
                        "sell_exchange_passphrase": creds[sell_exchange.upper()]['passphrase'],
                        "buy_exchange_key": creds[buy_exchange.upper()]['key'],
                        "buy_exchange_secret": creds[buy_exchange.upper()]['secret'],
-                       "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase']
-                   },}
-
-        self.client.push(message)
+                       "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase'],
+                       "iv": init_vector
+                   },
+               }
+        cipher_text = encryption_suite.encrypt(message)
+        LOG.info("ENCRYPTION")
+        LOG.info(cipher_text)
+        plain_text = decryption_suite.decrypt(cipher_text)
+        LOG.info(plain_text)
+        #self.client.push(message)
+        self.client.push(cipher_text)
