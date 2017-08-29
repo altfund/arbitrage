@@ -7,6 +7,10 @@ import time
 import tenacity
 import pika
 import requests
+import random
+import string
+import base64
+#import configparser
 
 from pika.exceptions import AMQPError, AMQPChannelError
 from tenacity import stop_after_delay, wait_exponential
@@ -27,6 +31,9 @@ class AMQPClient(object):
         self.queue_args = self.config.queue_args
         self._connection = None
         self._channel = None
+        ##app_config = configparser.ConfigParser()
+        ##app_config.read('config')
+        self.key = config.creds['settings']['aes_key']
 
     def _queue_exists(self):
         """Check if the queue exists"""
@@ -78,13 +85,33 @@ class AMQPClient(object):
                 expiration=self.message_ttl,
                 timestamp=int(time.time())
             )
+
+            #https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits-in-python
+            init_vector = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(16))
+
+            #encryption_suite = AES.new(self.key, AES.MODE_CFB, init_vector, segment_size=128)
+            encryption_suite = AES.new(self.key, AES.MODE_CFB, init_vector)
+            json_data = json.dumps(data)
+
+            # encrypt returns an encrypted byte string
+            cipher_text = encryption_suite.encrypt(json_data)
+
+            # encrypted byte string is base 64 encoded for message passing
+            base64_cipher_byte_string = base64.b64encode(cipher_text)
+
+            # base 64 byte string is decoded to utf-8 encoded string for json serialization
+            base64_cipher_string = base64_cipher_byte_string.decode('utf-8')
+
+            data = {"iv": init_vector,
+                    "encrypted_data": base64_cipher_string}
+
             self.channel.basic_publish(exchange='',
                                        routing_key=self.report_queue,
                                        body=json.dumps(data),
                                        properties=properties)
         except Exception as e:
             LOG.error('Failed to push a message %s. Skipped.' % data)
-
+            LOG.error('Exception %s.' % e)
 
 
 class Rabbitmq(ObserverBase):
@@ -197,14 +224,6 @@ class Rabbitmq(ObserverBase):
         #if buy_base_currency == base_currency:
             # implement volume limit on
 
-        init_vector = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(32))
-        LOG.info(init_vector)
-        #key = config['settings']['AES_KEY']
-        encryption_suite = AES.new( config['settings']['AES_KEY'],
-                                    AES.MODE_CFB,
-                                    init_vector,
-                                    segment_size=256)
-
         message = {"order_type": "inter_exchange_arb",
                    "order_specs": {
                        "buy_base_currency": buy_base_currency,
@@ -225,14 +244,7 @@ class Rabbitmq(ObserverBase):
                        "sell_exchange_passphrase": creds[sell_exchange.upper()]['passphrase'],
                        "buy_exchange_key": creds[buy_exchange.upper()]['key'],
                        "buy_exchange_secret": creds[buy_exchange.upper()]['secret'],
-                       "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase'],
-                       "iv": init_vector
+                       "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase']
                    },
                }
-        cipher_text = encryption_suite.encrypt(message)
-        LOG.info("ENCRYPTION")
-        LOG.info(cipher_text)
-        plain_text = decryption_suite.decrypt(cipher_text)
-        LOG.info(plain_text)
-        #self.client.push(message)
-        self.client.push(cipher_text)
+        self.client.push(message)
