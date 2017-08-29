@@ -14,7 +14,7 @@ setup(name='bitcoin-arbitrage',
       version='0.3',
       description='Bitcoin arbitrage opportunity watcher',
       install_requires=[
-          "sleekxmpp", 'tenacity', 'pika', 'PyYAML', 'requests'
+          "sleekxmpp", 'tenacity', 'pika', 'PyYAML', 'requests', 'pycrypto'
       ],
       arbitrage=['bin/bitcoin-arbitrage'],
       test_suite='nose.collector',
