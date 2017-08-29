@@ -7,10 +7,15 @@ import time
 import tenacity
 import pika
 import requests
+import random
+import string
+import base64
+#import configparser
 
 from pika.exceptions import AMQPError, AMQPChannelError
 from tenacity import stop_after_delay, wait_exponential
 from arbitrage.observers.observer import ObserverBase
+from Crypto.Cipher import AES
 
 LOG = logging.getLogger(__name__)
 
@@ -26,6 +31,9 @@ class AMQPClient(object):
         self.queue_args = self.config.queue_args
         self._connection = None
         self._channel = None
+        ##app_config = configparser.ConfigParser()
+        ##app_config.read('config')
+        self.key = config.creds['settings']['aes_key']
 
     def _queue_exists(self):
         """Check if the queue exists"""
@@ -77,13 +85,33 @@ class AMQPClient(object):
                 expiration=self.message_ttl,
                 timestamp=int(time.time())
             )
+
+            #https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits-in-python
+            init_vector = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(16))
+
+            #encryption_suite = AES.new(self.key, AES.MODE_CFB, init_vector, segment_size=128)
+            encryption_suite = AES.new(self.key, AES.MODE_CFB, init_vector)
+            json_data = json.dumps(data)
+
+            # encrypt returns an encrypted byte string
+            cipher_text = encryption_suite.encrypt(json_data)
+
+            # encrypted byte string is base 64 encoded for message passing
+            base64_cipher_byte_string = base64.b64encode(cipher_text)
+
+            # base 64 byte string is decoded to utf-8 encoded string for json serialization
+            base64_cipher_string = base64_cipher_byte_string.decode('utf-8')
+
+            data = {"iv": init_vector,
+                    "encrypted_data": base64_cipher_string}
+
             self.channel.basic_publish(exchange='',
                                        routing_key=self.report_queue,
                                        body=json.dumps(data),
                                        properties=properties)
         except Exception as e:
             LOG.error('Failed to push a message %s. Skipped.' % data)
-            
+            LOG.error('Exception %s.' % e)
 
 
 class Rabbitmq(ObserverBase):
@@ -100,18 +128,18 @@ class Rabbitmq(ObserverBase):
         # split market name and currency:  KrakenUSD -> (Kraken, USD)
         buy_exchange, buy_currency = kask[:-3], kask[-3:]
         sell_exchange, sell_currency = kbid[:-3], kbid[-3:]
-        
+
         #url = "http://localhost:8000/api/arbitrage_opportunity/"
         if sell_currency != buy_currency:
             LOG.info("Sell currency not equal to buy currency")
             return(0)
-        
+
         watch_currency = sell_currency
-        
-        
+
+
         if watch_currency == "DSH":
             watch_currency = "DASH"
-        
+
         data = {
             "api_key":self.client.config.api_key,
             "arb_volume": volume,
@@ -120,16 +148,16 @@ class Rabbitmq(ObserverBase):
             "sell_currency": sell_currency,
             "sell_exchange": sell_exchange.upper(),
         }
-        
+
 
 
         #request = requests.post(self.client.config.api_endpoint, data=data)
         #request.content
         #for account in requests.content:
-        
-        
+
+
         creds = self.client.config.creds
-        
+
         #order = {
         #    "params":{
         #        "order_type": "inter_exchange_arb" #_id":
@@ -149,22 +177,22 @@ class Rabbitmq(ObserverBase):
         #        "passphrase": 1
         #    }
         #}
-        
+
         investor_currency = "BTC"
         max_tx_volume = 0.005
-        
-        
+
+
         buy_base_currency = watch_currency
         buy_quote_currency = "BTC"
         sell_base_currency = watch_currency
         sell_quote_currency = "BTC"
-        
+
         if watch_currency == "USD" or watch_currency == "EUR":
             buy_base_currency = "BTC"
             sell_base_currency = "BTC"
             buy_quote_currency = watch_currency
             sell_quote_currency = watch_currency
-        
+
         if buy_base_currency == investor_currency:
             buy_volume = min([volume, max_tx_volume])
             e_profit = (weighted_sellprice - weighted_buyprice) * buy_volume
@@ -178,20 +206,23 @@ class Rabbitmq(ObserverBase):
         else:
             LOG.info("investor_currency not represented in arbitrage_opportunity")
             return(0)
-        
+
         sell_volume = buy_volume
-        
+
         e_roi = weighted_sellprice/weighted_buyprice-1.0
         limit_roi = min_sell_price/max_buy_price-1.0
-        
+
         "Sammy ate {0:.3f} percent of a pizza!".format(75.765367)
-        
-        
+
+
         LOG.info("Expected Profit (Limit Profit): "+str(e_profit)+" ("+str(limit_profit)+") "+investor_currency)
         LOG.info("Expected ROI (Limit ROI): "+"{0:.2f}".format(e_roi*100)+" ("+"{0:.2f}".format(limit_roi*100)+") %")
         LOG.info("Value at Risk: "+str(v_a_r)+" "+investor_currency)
         LOG.info("BUY (BID) "+str(buy_volume)+" "+buy_base_currency+" @ "+str(max_buy_price)+" "+buy_quote_currency+"/"+buy_base_currency+" on "+buy_exchange.upper())
         LOG.info("SELL (ASK) "+str(sell_volume)+" "+sell_base_currency+" @ "+str(min_sell_price)+" "+sell_quote_currency+"/"+sell_base_currency+" on "+sell_exchange.upper())
+
+        #if buy_base_currency == base_currency:
+            # implement volume limit on
 
         message = {"order_type": "inter_exchange_arb",
                    "order_specs": {
@@ -214,6 +245,6 @@ class Rabbitmq(ObserverBase):
                        "buy_exchange_key": creds[buy_exchange.upper()]['key'],
                        "buy_exchange_secret": creds[buy_exchange.upper()]['secret'],
                        "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase']
-                   },}
-
+                   },
+               }
         self.client.push(message)
