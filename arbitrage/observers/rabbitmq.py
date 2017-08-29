@@ -129,7 +129,6 @@ class Rabbitmq(ObserverBase):
         buy_exchange, buy_currency = kask[:-3], kask[-3:]
         sell_exchange, sell_currency = kbid[:-3], kbid[-3:]
 
-        #url = "http://localhost:8000/api/arbitrage_opportunity/"
         if sell_currency != buy_currency:
             LOG.info("Sell currency not equal to buy currency")
             return(0)
