@@ -139,22 +139,6 @@ class Rabbitmq(ObserverBase):
         if watch_currency == "DSH":
             watch_currency = "DASH"
 
-        data = {
-            "api_key":self.client.config.api_key,
-            "arb_volume": volume,
-            "buy_currency": buy_currency,
-            "buy_exchange": buy_exchange.upper(),
-            "sell_currency": sell_currency,
-            "sell_exchange": sell_exchange.upper(),
-        }
-
-
-
-        #request = requests.post(self.client.config.api_endpoint, data=data)
-        #request.content
-        #for account in requests.content:
-
-
         creds = self.client.config.creds
 
         #order = {
@@ -222,28 +206,58 @@ class Rabbitmq(ObserverBase):
 
         #if buy_base_currency == base_currency:
             # implement volume limit on
-
-        message = {"order_type": "inter_exchange_arb",
-                   "order_specs": {
-                       "buy_base_currency": buy_base_currency,
-                       "buy_quote_currency": buy_quote_currency,
-                       "buy_volume": buy_volume,
-                       "buy_price": max_buy_price,
-                       "buy_exchange": buy_exchange.upper(),
-                       "sell_base_currency": sell_base_currency,
-                       "sell_quote_currency": sell_quote_currency,
-                       "sell_volume": sell_volume,
-                       "sell_price": min_sell_price,
-                       "sell_exchange": sell_exchange.upper()},
-                    "user_specs": {
-                        "user_id":1,
-                        "investment_strategy_id": 1,
-                       "sell_exchange_key": creds[sell_exchange.upper()]['key'],
-                       "sell_exchange_secret": creds[sell_exchange.upper()]['secret'],
-                       "sell_exchange_passphrase": creds[sell_exchange.upper()]['passphrase'],
-                       "buy_exchange_key": creds[buy_exchange.upper()]['key'],
-                       "buy_exchange_secret": creds[buy_exchange.upper()]['secret'],
-                       "buy_exchange_passphrase": creds[buy_exchange.upper()]['passphrase']
-                   },
-               }
-        self.client.push(message)
+            
+        data = {
+            "api_key":self.client.config.api_key,
+            "buy_currency": buy_base_currency,
+            "buy_exchange": buy_exchange.upper(),
+            "sell_currency": sell_base_currency,
+            "sell_exchange": sell_exchange.upper(),
+        }
+        
+        request = requests.post(self.client.config.api_endpoint, data=data)
+        #response = request.content
+        #for account in requests.content:
+            
+        responses = [{
+            "buy_balance": buy_volume,
+            "sell_balance": sell_volume,
+            "user_id": 9,
+            "investment_strategy_id": 2,
+            "sell_exchange_key": "x",
+            "sell_exchange_secret": "x",
+            "sell_exchange_passphrase": "x",
+            "buy_exchange_key": "x",
+            "buy_exchange_secret": "x",
+            "buy_exchange_passphrase": "x"
+        }]
+        
+        for response in responses:
+            
+            user_buy_volume = response['buy_balance']
+            user_sell_volume = response['sell_balance']
+            
+            message = {"order_type": "inter_exchange_arb",
+                       "order_specs": {
+                           "buy_base_currency": buy_base_currency,
+                           "buy_quote_currency": buy_quote_currency,
+                           "buy_volume": user_buy_volume,
+                           "buy_price": max_buy_price,
+                           "buy_exchange": buy_exchange.upper(),
+                           "sell_base_currency": sell_base_currency,
+                           "sell_quote_currency": sell_quote_currency,
+                           "sell_volume": user_sell_volume,
+                           "sell_price": min_sell_price,
+                           "sell_exchange": sell_exchange.upper()},
+                        "user_specs": {
+                            "user_id": response['user_id'],
+                            "investment_strategy_id": response['investment_strategy_id'],
+                           "sell_exchange_key": response['sell_exchange_key'],
+                           "sell_exchange_secret": response['sell_exchange_secret'],
+                           "sell_exchange_passphrase": response['sell_exchange_passphrase'],
+                           "buy_exchange_key": response['buy_exchange_key'],
+                           "buy_exchange_secret": response['buy_exchange_secret'],
+                           "buy_exchange_passphrase": response['buy_exchange_passphrase']
+                       },
+                   }
+            self.client.push(message)
