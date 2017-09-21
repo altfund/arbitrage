@@ -12,13 +12,15 @@ class HuobiBase(MarketBase):
         self.update_rate = 30
 
     def update_depth(self):
-        url = 'https://api.gdax.com/products/%s/book?level=2' % self.code
+        #/market/depth?symbol=ethcny&type=step1
+        #url = 'http://api.huobi.com/staticmarket/depth_%s_50.js' % self.code
+        url = 'http://api.huobi.pro/market/depth?symbol=%s&type=step0' % self.code
         req = urllib.request.Request(url, headers={
             "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "*/*",
             "User-Agent": "curl/7.24.0 (x86_64-apple-darwin12.0)"})
         res = urllib.request.urlopen(req)
-        depth = json.loads(res.read().decode('utf8'))
+        depth = json.loads(res.read().decode('utf8'))['tick']
         self.depth = self.format_depth(depth)
 
     def sort_and_format(self, l, reverse=False):

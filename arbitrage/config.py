@@ -38,8 +38,8 @@ class Configuration(RabbitmqCfgMixin):
         self.opts = []
 
         super().__init__()
-        self.refresh_rate = 5
-        self.default_market_update_rate = 1
+        self.refresh_rate = 60
+        self.default_market_update_rate = 60
         self.transaction_cost = 0 #0.003
         self.market_expiration_time = 120
         #self.max_tx_volume = 0.005
@@ -48,7 +48,7 @@ class Configuration(RabbitmqCfgMixin):
         self.opts.extend([
             'default_market_update_rate',
             'market_expiration_time',
-            'fiat_update_delay',
+            'fiat_update_delay',    
             'max_tx_volume',
             'refresh_rate',
             'observers',
@@ -67,18 +67,18 @@ class Configuration(RabbitmqCfgMixin):
             setattr(self, key, config.get(key))
         return self
 
-class SampleConfig(ConfigBase):
+class SampleConfig(RabbitmqCfgMixin):
     def __init__(self):
         self.opts = []
 
         super().__init__()
-        self.refresh_rate = 30
-        self.default_market_update_rate = 30
-        self.transaction_cost = .003
+        self.refresh_rate = 60
+        self.default_market_update_rate = 60
+        self.transaction_cost = 0 #.003
         self.market_expiration_time = 120
         self.max_tx_volume = 10
-        self.observers = ['Logger']
-        self.markets = ["GDAXUSD", "KrakenUSD", "GDAXLTC","KrakenLTC", "KrakenETH", "GDAXETH"]
+        self.observers = ['Logger', 'Sampler']
+        self.markets = ["HuobiETH", "GDAXETH", "HuobiLTC", "GDAXLTC"]
         self.opts.extend([
             'default_market_update_rate',
             'market_expiration_time',

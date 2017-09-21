@@ -57,7 +57,6 @@ class Arbiter(object):
                     buy_total - amount) + price * amount) / buy_total
         
         max_buy_price = price
-        LOG.debug(price)
         
         sell_total = 0
         w_sellprice = 0
@@ -134,14 +133,14 @@ class Arbiter(object):
         if volume == 0 or buyprice == 0:
             return
         txn_cost = float(self.config.creds[kask[:-3].upper()]['taker_fee']) + float(self.config.creds[kbid[:-3].upper()]['taker_fee'])
-        LOG.debug(txn_cost)
+        #LOG.debug(txn_cost)
         perc2 = ((1 - (volume - (profit / buyprice)) / volume) - txn_cost) * 100
-        LOG.debug(perc2)
+        #LOG.debug(perc2)
         if perc2 < 0:
             return
-        LOG.debug("found an opportunity")
+        #LOG.debug("found an opportunity")
         for observer in self.observers:
-            LOG.debug("sending an opportunity")
+            #LOG.debug("sending an opportunity")
             observer.opportunity(
                 profit, volume, buyprice, kask, sellprice, kbid,
                 perc2, weighted_buyprice, weighted_sellprice,
@@ -163,7 +162,7 @@ class Arbiter(object):
         for market in self.markets:
             ticker = market.get_ticker()
             msg = "ticker: %s - %s " % (market.name, str(ticker))
-            LOG.debug(msg)
+            #LOG.debug(msg)
 
     def tick(self):
         for observer in self.observers:

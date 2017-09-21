@@ -1,17 +1,10 @@
-from arbitrage.markets._gdax import HuobiBase
+from arbitrage.markets._huobi import HuobiBase
 
-class GDAXETH(GDAXBase):
+class HuobiETH(HuobiBase):
     def __init__(self, config=None):
-        super().__init__("BTC", "ETH-BTC", config)
+        super().__init__("BTC", "ethbtc", config)
         
-class GDAXEUR(GDAXBase):
+class HuobiLTC(HuobiBase):
     def __init__(self, config=None):
-        super().__init__("EUR", "BTC-EUR", config)
+        super().__init__("BTC", "ltcbtc", config)
         
-class GDAXLTC(GDAXBase):
-    def __init__(self, config=None):
-        super().__init__("BTC", "LTC-BTC", config)
-        
-class GDAXUSD(GDAXBase):
-    def __init__(self, config=None):
-        super().__init__("USD", "BTC-USD", config)

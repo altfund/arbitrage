@@ -210,26 +210,27 @@ class Rabbitmq(ObserverBase):
         data = {
             "api_key":self.client.config.api_key,
             "buy_currency": buy_base_currency,
-            "buy_exchange": buy_exchange.upper(),
+            "buy_exchange": buy_exchange,
             "sell_currency": sell_base_currency,
-            "sell_exchange": sell_exchange.upper(),
+            "sell_exchange": sell_exchange,
         }
         
         request = requests.post(self.client.config.api_endpoint, data=data)
-        #response = request.content
+        responses = json.loads(request.content.decode('utf8'))['data']
+        LOG.debug(responses)
         #for account in requests.content:
             
-        responses = [{
+        test_responses = [{
             "buy_balance": buy_volume,
             "sell_balance": sell_volume,
             "user_id": 9,
             "investment_strategy_id": 2,
-            "sell_exchange_key": "x",
-            "sell_exchange_secret": "x",
-            "sell_exchange_passphrase": "x",
-            "buy_exchange_key": "x",
-            "buy_exchange_secret": "x",
-            "buy_exchange_passphrase": "x"
+            "sell_exchange_key": "xxxx",
+            "sell_exchange_secret": "xxxx",
+            "sell_exchange_passphrase": "xxxx",
+            "buy_exchange_key": "xxxx",
+            "buy_exchange_secret": "xxxx",
+            "buy_exchange_passphrase": "xxxx"
         }]
         
         for response in responses:
@@ -260,4 +261,5 @@ class Rabbitmq(ObserverBase):
                            "buy_exchange_passphrase": response['buy_exchange_passphrase']
                        },
                    }
+            LOG.info("sending message")
             self.client.push(message)

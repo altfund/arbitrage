@@ -1,6 +1,8 @@
 venv/
 env/
 
+opportunity_log
+
 *.py[cod]
 
 # C extensions
