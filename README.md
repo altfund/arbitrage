@@ -13,6 +13,7 @@ python run_queue.py
 GDAX: ETH, LTC, EUR, USD
 Kraken: ETH, EUR, LTC, USD, XLM, REP, EOS, GNO, XRP, ICN, ZEC, ETC ,XDG, DSH, MLN, XMR
 Poloniex: ETH, LTC, REP, GNO, XRP, ZEC, ETC, DSH, XMR
+Huobi: ETH, LTC
 ```
 * All currencies compared on BTC basis
 ** DSH = DASH shortened to 3 character code for conformity
